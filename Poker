@@ -1,0 +1,136 @@
+const suits = ['♠', '♥', '♦', '♣'];
+const ranks = ['2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K', 'A'];
+
+let deck = [];
+let playerHand = [];
+let communityCard = null;
+
+let chips = 1000;
+
+const dealBtn = document.getElementById('dealBtn');
+const foldBtn = document.getElementById('foldBtn');
+const callBtn = document.getElementById('callBtn');
+const raiseBtn = document.getElementById('raiseBtn');
+
+const playerCardsDiv = document.getElementById('playerCards');
+const communityCardDiv = document.getElementById('communityCard');
+const resultP = document.getElementById('result');
+const chipsSpan = document.getElementById('chips');
+
+document.getElementById('status').innerHTML += `
+<button id="betBtn">Сделать ставку (50)</button>`;
+const betBtn = document.getElementById('betBtn');
+
+function createDeck() {
+    deck = [];
+    for (let suit of suits) {
+        for (let rank of ranks) {
+            deck.push({suit, rank});
+        }
+    }
+}
+
+function shuffleDeck() {
+    for (let i = deck.length -1; i >0; i--) {
+        const j= Math.floor(Math.random()*(i+1));
+        [deck[i], deck[j]] = [deck[j], deck[i]];
+    }
+}
+
+function dealCards() {
+    playerHand = [deck.pop(), deck.pop()];
+}
+
+function showCards() {
+    playerCardsDiv.innerHTML = '';
+    for (let card of playerHand) {
+        const cardDiv= document.createElement('div');
+        cardDiv.className='card';
+        cardDiv.innerText=card.rank+card.suit;
+        playerCardsDiv.appendChild(cardDiv);
+    }
+}
+
+function revealCommunityCard() {
+    communityCard= deck.pop();
+    communityCardDiv.innerHTML='';
+    
+    const cardDiv= document.createElement('div');
+    cardDiv.className='card';
+    
+    cardDiv.innerText=communityCard.rank+communityCard.suit;
+    
+    communityCardDiv.appendChild(cardDiv);
+}
+
+function startGame() {
+    createDeck();
+    shuffleDeck();
+    
+    dealCards();
+    
+    showCards();
+    
+    // Обнуляем результат
+     resultP.innerText='';
+     
+     // Показываем игровую зону
+     document.getElementById('gameArea').style.display='block';
+     
+     // Включаем кнопки действий
+     foldBtn.disabled=false;
+     callBtn.disabled=false;
+     raiseBtn.disabled=false;
+
+     // Удаляем кнопку ставки
+     document.querySelector('#status button#betBtn')?.remove();
+}
+
+// Обработка ставки
+document.querySelector('#status button#betBtn')?.addEventListener('click', () => {
+   if (chips >=50) {
+       chips -=50; 
+       chipsSpan.innerText=chips; 
+       alert('Вы поставили 50 фишек!');
+       // После ставки показываем общую карту
+       revealCommunityCard();
+   } else {
+       alert('Недостаточно фишек!');
+   }
+});
+
+// Начать новую игру
+dealBtn.addEventListener('click', startGame);
+
+// Пас
+foldBtn.addEventListener('click', () => {
+   resultP.innerText='Вы сбросили карты. Игра окончена.';
+   endGame();
+});
+
+// Колл
+callBtn.addEventListener('click', () => {
+   alert('Вы коллируете!');
+   // Можно добавить логику сравнения или просто завершить игру
+   endGame();
+});
+
+// Повысить
+raiseBtn.addEventListener('click', () => {
+   if (chips >=50) {
+       chips -=50; 
+       chipsSpan.innerText=chips; 
+       alert('Вы повысили ставку на 50!');
+       revealCommunityCard();
+   } else {
+       alert('Недостаточно фишек для повышения!');
+   }
+});
+
+function endGame() {
+   foldBtn.disabled=true;
+   callBtn.disabled=true;
+   raiseBtn.disabled=true;
+
+   resultP.innerText='Игра завершена. Хотите сыграть еще? Нажмите "Начать новую игру".';
+}
